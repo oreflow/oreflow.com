@@ -1,0 +1,211 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+		<title>Oreflow.com - Where the ores flow</title>
+		<link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
+		<script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+		<script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+		<script src="WordWidget.js"></script>
+		<script src="UpdateThread.js"></script>
+		<style>
+			body {display:table;
+			  /* fallback */
+			  background-color: #2F2727;
+			  background-image: url(images/radial_bg.png);
+			  background-position: center center;
+			  background-repeat: no-repeat;
+			
+			  /* Safari 4-5, Chrome 1-9 */
+			  /* Can't specify a percentage size? Laaaaaame. */
+			  background: -webkit-gradient(radial, center center, 0, center center, 460, from(#1a82f7), to(#2F2727));
+			
+			  /* Safari 5.1+, Chrome 10+ */
+			  background: -webkit-radial-gradient(circle, #1a82f7, #2F2727);
+			
+			  /* Firefox 3.6+ */
+			  background: -moz-radial-gradient(circle, #1a82f7, #2F2727);
+			
+			  /* IE 10 */
+			  background: -ms-radial-gradient(circle, #1a82f7, #2F2727);
+			
+			  /* Opera couldn't do radial gradients, then at some point they started supporting the -webkit- syntax, how it kinda does but it's kinda broken (doesn't do sizing) */
+			}
+			#droppable { width: 150px; height: 150px; padding: 0.5em; float:none; border-color: Gray; border-style: solid; border-radius: 50px; background-color: teal; position: absolute;}
+			.word { width: auto; max-width: 200; height: 30px; padding: 0.5em; margin: 10px; font-size: 24px; background:lightblue; vertical-align: middle; text-align: center; font-family: fantasy; border-color: gray; border-radius: 15px; border-style: outset;}
+			#top_bar { width: 100%; height: 50px; border-bottom: medium; position: absolute; top: 0px; left: 0px; background-color: lightgray; font-size: 32px;}
+			#top_bar_table { width: 100%}
+			#top_bar_1 { width: 20% font-size: 32px }
+			#top_bar_2 { width: 60%; text-align: center; font-size: 32px}
+			#top_bar_3 { width: 20%}
+			#firstPage { visibility:collapse; width:100%; background: teal; z-index: 10; position:absolute; left:0px; top:50px;}
+		 </style>
+		<script>
+			var addedWords = "";
+			var passwordString = "";
+			var selectedWords = 0;
+			var disabledWords = new Array();
+			function addWord(ID) {
+	
+				var newWord = $("#" + ID).html();
+				$("#" + ID).WordWidget("enabled", false);
+				disabledWords[selectedWords] = ID;
+				
+				addedWords = addedWords + " " + newWord;
+				$("#entered_string").html(addedWords);
+				passwordString = passwordString + newWord;
+				selectedWords++;
+				
+				if(selectedWords >= 5)
+					{
+					RequestSession(passwordString)
+					}
+			}
+	  
+			function RequestSession(password) {
+	
+				$("#entered_string").html("Processing request");
+				
+				$.post(
+						document.location.href,
+						{requestType:"loginString",
+						 loginString:password},
+						function(result, status){
+							if(status == "success")
+							{
+								document.cookie = "SessionID=" + result.session;
+								addedWords = "";
+								passwordString = "";
+								selectedWords = 0;
+								disabledWords = new Array();
+								$("#entered_string").html("Entering page...");
+								var options = { to: { width: document.width, height: document.height - 50, left:0 }};
+								$("#droppable").effect("size",options, 1000);
+								setTimeout(function(){
+									$("#firstPage")
+										.css('height', document.height - 50)
+										.css('visibility', 'visible');
+									$("#loginPage").css('visibility', 'collapse');
+									$(".word").css('visibility', 'collapse');
+									$("#entered_string").html("");
+								},800);
+							}
+						}
+					).fail(function(){
+							for(var i=0;i<selectedWords; i++)
+							{
+								$("#" + disabledWords[i]).WordWidget("enabled", true);
+							}
+							$("#entered_string").html("Error on login");
+							setTimeout(function(){$("#entered_string").html("");},4000);
+							addedWords = "";
+							passwordString = "";
+							selectedWords = 0;
+							disabledWords = new Array();
+					});
+			}
+		</script>
+		<script>
+			$(function() {
+				$( "#draggable" ).draggable();
+				$( "#droppable" ).droppable({
+				drop: function( event, ui ) {
+					var draggedID = ui.draggable.prop('id')
+					addWord(draggedID);
+					}
+				})
+				.css('top',((document.height/2) - 75) + 'px')
+				.css('left',((document.width/2) - 75) + 'px');
+			});
+		</script>
+		<script>
+			var NOWords;
+			var w;
+			$(document).ready(function ()
+			{
+				$('body').disableSelection();
+				
+				$.post(
+					document.location.href,
+					{requestType:"loginWords"},
+					function(result, status){
+				
+					if(status == "success")
+					{
+						var index = 0;
+						$.each(result, function(i, field)
+						{
+							$("#wordsDiv").append('<div id="word' + index + '">' + field + "</div>");
+							$("#word" + index)
+								.WordWidget({
+									content: field
+								})
+								.draggable({
+									start: function( event, ui ) {
+										$( this )
+											.WordWidget("start")
+									},
+									stop: function( event, ui ) {
+										$( this )
+											.WordWidget("stop", ui)
+									}
+								});
+						
+							$("#word" + index)
+								.WordWidget("random");
+							index = index + 1;
+						});
+						NOWords = index
+
+						if(typeof(Worker)!=="undefined")
+						{
+							// Yes! Web worker support!
+							w = new Worker("UpdateThread.js");
+							
+							w.onmessage = function (event) {
+								$(event.data).WordWidget("move");
+							};
+							w.postMessage(NOWords);
+						}
+					}
+					else
+					{
+						alert("Error in post request");
+					}
+						
+					}
+				);
+				  
+			});
+		</script>
+	</head>
+	<body >
+	
+		<div id="top_bar">
+			<table id="top_bar_table">
+				<tr>
+					<td id="top_bar_1">
+						Oreflow.com
+					</td>
+					<td id="top_bar_2">
+						<div id="entered_string"></div>
+					</td>
+					<td id="top_bar_3">
+					
+					</td>
+				</tr>
+			</table>
+		</div>
+		
+	<div id="loginPage">
+		<div id="droppable" ></div>
+		<div id="wordsDiv"></div>
+	</div>
+	
+	<div id="firstPage">
+		<div id="construction_image" align="center">
+			<img src="construction.png"/>
+		</div>
+	</div>
+	</body>
+</html>
