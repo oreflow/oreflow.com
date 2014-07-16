@@ -3,11 +3,13 @@
  */
 
 angular.module('oreflow')
-    .service('modelService'[function () {
-        function loadModel(modelData, modelName, modelAwaits) {
+    .service('modelService', [function () {
+
+
+        var loadModel = function (modelData, modelName, modelAwaits) {
             var model = {
-                vertices: [ null ],
-                verticeObjects: [ null ],
+                vertices: [ ],
+                verticeObjects: [ ],
                 faces: [],
                 objects: {}
             };
@@ -72,6 +74,7 @@ angular.module('oreflow')
                             });
                             break;
                         default:
+                            console.log(splitted);
                             throw 'Not implemented faces with other than 3 or 4 vertices'
                     }
                 }

@@ -3,7 +3,6 @@
  */
 angular.module('oreflow', ['ng', 'ngRoute'])
 .config(['$routeProvider', function ($routeProvider) {
-        console.log('config');
         $routeProvider
             .when('/',
             {
