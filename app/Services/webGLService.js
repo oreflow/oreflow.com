@@ -126,54 +126,54 @@ angular.module('oreflow')
             for(var i = 0; i < objectKeys.length; i++) {
                 var model = models[objectKeys[i]];
 
+                var vertexPositions = []
+                var vertexIndices = [];
+                var vertexNormals = [];
+                var colorArray = [];
+                for(var j = 0; j < model.faces.length; j++) {
+                    vertexPositions = vertexPositions.concat(model.vertices[model.faces[j].face[0]]);
+                    vertexPositions = vertexPositions.concat(model.vertices[model.faces[j].face[1]]);
+                    vertexPositions = vertexPositions.concat(model.vertices[model.faces[j].face[2]]);
+
+                    var material = model.materials[model.verticeObjects[model.faces[j].face[0]].material];
+                    colorArray = colorArray.concat(material.diffuse.concat(material.opacity));
+                    colorArray = colorArray.concat(material.diffuse.concat(material.opacity));
+                    colorArray = colorArray.concat(material.diffuse.concat(material.opacity));
+
+                    vertexNormals = vertexNormals.concat(model.normals[model.faces[j].normal[0]]);
+                    vertexNormals = vertexNormals.concat(model.normals[model.faces[j].normal[1]]);
+                    vertexNormals = vertexNormals.concat(model.normals[model.faces[j].normal[2]]);
+
+                    vertexIndices = vertexIndices.concat(model.faces[j].face);
+                }
+
+
+
                 model.vertexPositionBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexPositionBuffer);
-                //console.log(model.vertices.slice(1, model.vertices.length).length);
-                //console.log(model.vertices.slice(1, model.vertices.length ));
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(model.vertices), gl.STATIC_DRAW);
-                model.vertexPositionBuffer.itemSize = 3;
-                model.vertexPositionBuffer.numItems = (model.vertices.length) / 3;
 
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositions), gl.STATIC_DRAW);
+                model.vertexPositionBuffer.itemSize = 3;
+                model.vertexPositionBuffer.numItems = vertexPositions.length / 3;
 
 
                 model.colorBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, model.colorBuffer);
 
-                var colorArray = [];
-                for(var j = 0; j < model.vertexPositionBuffer.numItems; j++) {
-                    var material = model.materials[model.verticeObjects[j * 3].material];
-                    colorArray = colorArray.concat(material.diffuse.concat(material.opacity));
-                }
-                //console.log(colorArray);
-
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colorArray), gl.STATIC_DRAW);
                 model.colorBuffer.itemSize = 4;
-                model.colorBuffer.numItems = model.vertexPositionBuffer.numItems;
+                model.colorBuffer.numItems = colorArray.length / 4;
+
 
                 model.vertexNormalIndexBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexNormalIndexBuffer);
 
-                model.vertexIndexBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.vertexIndexBuffer);
-
-
-
-
-                var vertexIndices = [];
-                var vertexNormals = [];
-                for(var i = 0; i < model.faces.length; i++) {
-                    vertexIndices = vertexIndices.concat(model.faces[i].face);
-
-                    vertexNormals = vertexNormals.concat(model.normals[model.faces[i].normal[0]]);
-                    vertexNormals = vertexNormals.concat(model.normals[model.faces[i].normal[1]]);
-                    vertexNormals = vertexNormals.concat(model.normals[model.faces[i].normal[2]]);
-                }
-                console.log(vertexIndices);
-                console.log(vertexNormals);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
                 model.vertexNormalIndexBuffer.itemSize = 3;
                 model.vertexNormalIndexBuffer.numItems = vertexNormals.length / 3;
 
+                model.vertexIndexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.vertexIndexBuffer);
 
                 gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(vertexIndices), gl.STATIC_DRAW);
                 model.vertexIndexBuffer.itemSize = 1;
@@ -193,54 +193,54 @@ angular.module('oreflow')
 
             mat4.identity(mvMatrix);
 
-            mat4.translate(mvMatrix, [0.0, 0.0, -7.0]);
+            //mat4.translate(mvMatrix, [0.0, 0.0, -7.0]);
+            mat4.translate(mvMatrix, [scene.translation.x, scene.translation.y, scene.translation.z]);
 
 
             var objectKeys = Object.keys(models);
             for(var i = 0; i < objectKeys.length; i++) {
-                var key = objectKeys[i];
+                var model = models[objectKeys[i]];
                 mvPushMatrix();
-
-                mat4.translate(mvMatrix, [0.0, -2.0, 0.0]);
-                mat4.rotate(mvMatrix, degToRad(rRomb), [0, 1, 0]);
-                gl.bindBuffer(gl.ARRAY_BUFFER, models[key].vertexPositionBuffer);
-                gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, models[key].vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                mat4.translate(mvMatrix, [model.translation.x, model.translation.y, model.translation.z]);
 
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, models[key].vertexNormalIndexBuffer);
-                gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, models[key].vertexNormalIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                mat4.rotate(mvMatrix, degToRad(model.rotation.x), [0, 1, 0]);
+                mat4.rotate(mvMatrix, degToRad(model.rotation.y), [1, 0, 0]);
+                mat4.rotate(mvMatrix, degToRad(model.rotation.z), [0, 0, 1]);
+                gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexPositionBuffer);
+                gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, model.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, models[key].colorBuffer);
-                gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, models[key].colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+                gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexNormalIndexBuffer);
+                gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, model.vertexNormalIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-
+                gl.bindBuffer(gl.ARRAY_BUFFER, model.colorBuffer);
+                gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, model.colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
                 gl.uniform3f(shaderProgram.ambientColorUniform,0.2, 0.2, 0.2);
 
-                var lightingDirection = [0.0, -1.0,0.0];
                 var adjustedLD = vec3.create();
-                vec3.normalize(lightingDirection, adjustedLD);
+                vec3.normalize(scene.lightingDirection, adjustedLD);
                 vec3.scale(adjustedLD, -1);
                 gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
 
                 gl.uniform3f(shaderProgram.directionalColorUniform,0.8,0.8,0.8);
 
 
-                gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, models[key].vertexIndexBuffer);
+                //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, models[key].vertexIndexBuffer);
                 setMatrixUniforms();
 
-                gl.drawElements(gl.TRIANGLES, models[key].vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-                //gl.drawArrays(gl.TRIANGLES, 0, models[key].vertexPositionBuffer.numItems);
+                //gl.drawElements(gl.TRIANGLES, model.vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+                gl.drawArrays(gl.TRIANGLES, 0, model.vertexPositionBuffer.numItems);
 
                 mvPopMatrix();
             }
-
-
         }
 
         var models = {};
 
         var modelAwaits = [];
+
+        var scene = {};
 
 
 
@@ -250,8 +250,8 @@ angular.module('oreflow')
             var timeNow = new Date().getTime();
             if (lastTime != 0) {
                 var elapsed = timeNow - lastTime;
-
-                rRomb += (10 * elapsed) / 1000.0;
+                // rotation
+                scene.rotation.x += (10 * elapsed) / 1000.0
             }
             lastTime = timeNow;
         }
@@ -266,23 +266,45 @@ angular.module('oreflow')
             return degrees * Math.PI / 180;
         }
 
-
-
-
-        var models = {};
-
-        var modelAwaits = [];
-
         var webGLStart = function(canvas) {
-            var modelObj = $.get('models/testcube.obj');
+            //var modelObj = $.get('models/testhouse.obj');
+            //var modelObj2 = $.get('models/testcubes.obj');
+            //var island = $.get('models/island.obj');
 
-            $.when(modelObj).done(function () {
-                models['testhouse'] = modelService.loadModel(modelObj.responseText, 'testcubes', modelAwaits);
+            var modelReferences = [
+                {name: 'testhouse', url: 'models/testhouse.obj'},
+                {name: 'island', url: 'models/island.obj'},
+                {name: 'express', url: 'models/express.obj'}
+            ];
+            var loadingModels = [];
+            for(var i = 0; i < modelReferences.length; i++){
+                loadingModels.push($.get(modelReferences[i].url));
+            }
+
+            var modelDefer = $.when.apply($, loadingModels);
+
+            modelDefer.done(function () {
+                for(var i = 0; i < modelReferences.length; i++) {
+                    models[modelReferences[i].name] = modelService.loadModel(loadingModels[i].responseText, modelReferences[i].name, modelAwaits);
+                    models[modelReferences[i].name].rotation = {x: 0, y: 0, z: 0};
+                    models[modelReferences[i].name].translation = {x: 0, y: 0, z: -25};
+                }
+
+                scene.rotation = {x: 0, y: 0, z: 0};
+                scene.translation = {x: 0, y: 0, z: -10};
+                scene.lightingDirection = [1.0, 1.0,-1.0];
+
+                models['testhouse'].translation.y = -7;
+                models['island'].translation.y = -8;
+                models['island'].rotation.x = 180;
+                models['express'].translation.y = -10;
+                models['express'].translation.z +=7;
 
                 var defer = $.when.apply($, modelAwaits);
 
                 defer.done(function () {
 
+                    console.log(models);
                     initGL(canvas);
                     initShaders();
                     initBuffers();

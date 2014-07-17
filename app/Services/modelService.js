@@ -38,8 +38,8 @@ angular.module('oreflow')
                     var splitted = line.split(' ');
                     switch(splitted.length) {
                         case 4:
-                            model.vertices.push(parseFloat(splitted[1]), parseFloat(splitted[2]), parseFloat(splitted[3]));
-                            model.verticeObjects.push(model.objects[currentObject], model.objects[currentObject], model.objects[currentObject]);
+                            model.vertices.push([parseFloat(splitted[1]), parseFloat(splitted[2]), parseFloat(splitted[3])]);
+                            model.verticeObjects.push(model.objects[currentObject]);
                             break;
                         case 5:
                             throw 'Not implemented vertices with [w]'
@@ -89,7 +89,6 @@ angular.module('oreflow')
                     model.materials = getMaterials(line.substr(7), modelAwaits);
                 }
             }
-            console.log(model);
             return model;
         };
 
