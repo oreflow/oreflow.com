@@ -10,6 +10,7 @@ angular.module('oreflow')
             var model = {
                 vertices: [ ],
                 verticeObjects: [ ],
+                normals: [],
                 faces: [],
                 objects: {}
             };
@@ -21,12 +22,15 @@ angular.module('oreflow')
                     currentObject = line.substr(2);
                     model.objects[currentObject] = {};
                     model.objects[currentObject].vertices = [];
+                    model.objects[currentObject].normals = [];
                 } else if(currentObject && line.substr(0, 2) === 'vt'){
                     // # Texture coordinates, in (u, v [,w]) coordinates, these will vary between 0 and 1, w is optional and default to 0.
                     throw 'Not implemented Texture coordinates';
                 } else if(currentObject && line.substr(0, 2) === 'vn'){
                     //  # Normals in (x,y,z) form; normals might not be unit.
-                    throw 'Not implemented Normals';
+                    var splitted = line.split(' ');
+                    model.normals.push([parseFloat(splitted[1]), parseFloat(splitted[2]), parseFloat(splitted[3])]);
+
                 } else if(currentObject && line.substr(0, 2) === 'vp'){
                     // # Parameter space vertices in ( u [,v] [,w] ) form; free form geometry statement ( see below )
                     throw 'Not implemented parameter space vertices';
@@ -49,7 +53,7 @@ angular.module('oreflow')
                         return {
                             face: parseFloat(innerSplit[0]) - 1,
                             textureCoordinate: parseFloat(innerSplit[1]),
-                            normal: parseFloat(innerSplit[2])
+                            normal: parseFloat(innerSplit[2]) - 1
                         }
 
                     };
@@ -85,6 +89,7 @@ angular.module('oreflow')
                     model.materials = getMaterials(line.substr(7), modelAwaits);
                 }
             }
+            console.log(model);
             return model;
         };
 

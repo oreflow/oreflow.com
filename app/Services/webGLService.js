@@ -2,7 +2,7 @@
  * Created by Tim on 15/07/2014.
  */
 angular.module('oreflow')
-.service('webGLService', ['modelService', function (modelService) {
+    .service('webGLService', ['modelService', function (modelService) {
 
 
         var gl;
@@ -76,11 +76,20 @@ angular.module('oreflow')
             shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
             gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
+            shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
+            gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
+
             shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
             gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
 
             shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
             shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
+            shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
+            shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
+            shaderProgram.useLightingUniform = gl.getUniformLocation(shaderProgram, "uUseLighting");
+            shaderProgram.ambientColorUniform = gl.getUniformLocation(shaderProgram, "uAmbientColor");
+            shaderProgram.lightingDirectionUniform = gl.getUniformLocation(shaderProgram, "uLightingDirection");
+            shaderProgram.directionalColorUniform = gl.getUniformLocation(shaderProgram, "uDirectionalColor");
         }
 
 
@@ -91,6 +100,11 @@ angular.module('oreflow')
         function setMatrixUniforms() {
             gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
             gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+
+            var normalMatrix = mat3.create();
+            mat4.toInverseMat3(mvMatrix, normalMatrix);
+            mat3.transpose(normalMatrix);
+            gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
         }
 
         function mvPushMatrix() {
@@ -136,22 +150,35 @@ angular.module('oreflow')
                 model.colorBuffer.itemSize = 4;
                 model.colorBuffer.numItems = model.vertexPositionBuffer.numItems;
 
+                model.vertexNormalIndexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexNormalIndexBuffer);
 
                 model.vertexIndexBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.vertexIndexBuffer);
-                var cubeVertexIndices = [];
+
+
+
+
+                var vertexIndices = [];
+                var vertexNormals = [];
                 for(var i = 0; i < model.faces.length; i++) {
-                    cubeVertexIndices = cubeVertexIndices.concat(model.faces[i].face);
+                    vertexIndices = vertexIndices.concat(model.faces[i].face);
+
+                    vertexNormals = vertexNormals.concat(model.normals[model.faces[i].normal[0]]);
+                    vertexNormals = vertexNormals.concat(model.normals[model.faces[i].normal[1]]);
+                    vertexNormals = vertexNormals.concat(model.normals[model.faces[i].normal[2]]);
                 }
-                //console.log(cubeVertexIndices);
-                //console.log(cubeVertexIndices.length/3);
-                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(cubeVertexIndices), gl.STATIC_DRAW);
+                console.log(vertexIndices);
+                console.log(vertexNormals);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals), gl.STATIC_DRAW);
+                model.vertexNormalIndexBuffer.itemSize = 3;
+                model.vertexNormalIndexBuffer.numItems = vertexNormals.length / 3;
+
+
+                gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(vertexIndices), gl.STATIC_DRAW);
                 model.vertexIndexBuffer.itemSize = 1;
-                model.vertexIndexBuffer.numItems = cubeVertexIndices.length;
+                model.vertexIndexBuffer.numItems = vertexIndices.length;
             }
-
-
-
         }
 
 
@@ -180,12 +207,28 @@ angular.module('oreflow')
                 gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, models[key].vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 
+                gl.bindBuffer(gl.ARRAY_BUFFER, models[key].vertexNormalIndexBuffer);
+                gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, models[key].vertexNormalIndexBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, models[key].colorBuffer);
                 gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, models[key].colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
 
+
+                gl.uniform3f(shaderProgram.ambientColorUniform,0.2, 0.2, 0.2);
+
+                var lightingDirection = [0.0, -1.0,0.0];
+                var adjustedLD = vec3.create();
+                vec3.normalize(lightingDirection, adjustedLD);
+                vec3.scale(adjustedLD, -1);
+                gl.uniform3fv(shaderProgram.lightingDirectionUniform, adjustedLD);
+
+                gl.uniform3f(shaderProgram.directionalColorUniform,0.8,0.8,0.8);
+
+
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, models[key].vertexIndexBuffer);
                 setMatrixUniforms();
+
                 gl.drawElements(gl.TRIANGLES, models[key].vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
                 //gl.drawArrays(gl.TRIANGLES, 0, models[key].vertexPositionBuffer.numItems);
 
@@ -231,10 +274,10 @@ angular.module('oreflow')
         var modelAwaits = [];
 
         var webGLStart = function(canvas) {
-            var modelObj = $.get('models/testhouse.obj');
+            var modelObj = $.get('models/testcube.obj');
 
             $.when(modelObj).done(function () {
-                models['testcubes'] = modelService.loadModel(modelObj.responseText, 'testcubes', modelAwaits);
+                models['testhouse'] = modelService.loadModel(modelObj.responseText, 'testcubes', modelAwaits);
 
                 var defer = $.when.apply($, modelAwaits);
 
