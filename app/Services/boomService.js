@@ -5,6 +5,7 @@ angular.module('oreflow')
     .service('boomService', [ 'commonService', 'modelService', function ( commonService, modelService) {
         var boatModel;
         var boomModel;
+        var sailModel;
         var boomLength = 4;
         var boomAngle = 0;
         var boomModelAngle = 2; // bommen lutar bakåt 2 grader
@@ -15,6 +16,9 @@ angular.module('oreflow')
             }
             if(!boomModel) {
                 boomModel = modelService.getModel('boom');
+            }
+            if(!sailModel) {
+                sailModel = modelService.getModel('plain_sail');
             }
             if(!boatModel || !boomModel) {
                 console.log('returning since model was missing')
@@ -38,6 +42,16 @@ angular.module('oreflow')
             boomModel.translation.x += dx * Math.cos(commonService.angles.degToRad(boatModel.rotation.y)) + dz * Math.sin(commonService.angles.degToRad(boatModel.rotation.y));
             boomModel.translation.z = boatModel.translation.z;
             boomModel.translation.z += -dx * Math.sin(commonService.angles.degToRad(boatModel.rotation.y)) + dz * Math.cos(commonService.angles.degToRad(boatModel.rotation.y));
+
+
+            if(sailModel) {
+                sailModel.rotation.x = boomModel.rotation.x ;
+                sailModel.rotation.z = boomModel.rotation.z ;
+                sailModel.rotation.y = boomModel.rotation.y;
+                sailModel.translation.y = boomModel.translation.y;
+                sailModel.translation.y = boomModel.translation.y;
+                sailModel.translation.y = boomModel.translation.y;
+            }
         };
 
         var setBoomAngle = function (angle) {

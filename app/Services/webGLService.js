@@ -313,8 +313,11 @@ angular.module('oreflow')
                 models['express'].translation.x += 7;
                 models['express'].rotation.y += 0;
 
+                models['plain_sail'].translation.y += -5;
+                models['plain_sail'].translation.x += 7;
+                models['plain_sail'].rotation.y += 0;
 
-                // default boom placement
+                boomService.setBoomAngle(0);
 
 
                 var defer = $.when.apply($, modelAwaits);
