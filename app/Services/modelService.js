@@ -3,7 +3,7 @@
  */
 
 angular.module('oreflow')
-    .service('modelService', [function () {
+    .service('modelService', ['$q', function ($q) {
 
 
         var loadModel = function (modelData, modelName, modelAwaits) {
@@ -124,8 +124,19 @@ angular.module('oreflow')
             return materials;
         };
 
+        var models = {};
+        var getModels = function () {
+            return models;
+        };
+
+        var getModel = function (name) {
+            return models[name];
+        };
+
         return {
             loadModel: loadModel,
-            getMaterials: getMaterials
+            getMaterials: getMaterials,
+            getModels: getModels,
+            getModel: getModel
         };
     }]);

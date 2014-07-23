@@ -2,7 +2,7 @@
  * Created by Tim on 15/07/2014.
  */
 angular.module('oreflow')
-    .service('webGLService', ['modelService', function (modelService) {
+    .service('webGLService', ['modelService', 'commonService', 'boomService', function (modelService, commonService, boomService) {
 
 
         var gl;
@@ -186,6 +186,12 @@ angular.module('oreflow')
         var rRomb = 0;
 
         function drawScene() {
+            // functions that need to be called each draw cycle
+
+            boomService.updatePosition();
+
+
+
             gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
             gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -204,9 +210,11 @@ angular.module('oreflow')
                 mat4.translate(mvMatrix, [model.translation.x, model.translation.y, model.translation.z]);
 
 
-                mat4.rotate(mvMatrix, degToRad(model.rotation.x), [0, 1, 0]);
-                mat4.rotate(mvMatrix, degToRad(model.rotation.y), [1, 0, 0]);
-                mat4.rotate(mvMatrix, degToRad(model.rotation.z), [0, 0, 1]);
+                mat4.rotate(mvMatrix, commonService.angles.degToRad(model.rotation.x), [1, 0, 0]);
+                mat4.rotate(mvMatrix, commonService.angles.degToRad(model.rotation.z), [0, 0, 1]);
+                mat4.rotate(mvMatrix, commonService.angles.degToRad(model.rotation.y), [0, 1, 0]);
+
+
                 gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexPositionBuffer);
                 gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, model.vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -251,7 +259,10 @@ angular.module('oreflow')
             if (lastTime != 0) {
                 var elapsed = timeNow - lastTime;
                 // rotation
-                scene.rotation.x += (10 * elapsed) / 1000.0
+                //scene.rotation.x += (10 * elapsed) / 1000.0
+                models['express'].rotation.y += (45 * elapsed) / 1000.0;
+                models['express'].rotation.y = models['express'].rotation.y % 360;
+
             }
             lastTime = timeNow;
         }
@@ -262,20 +273,20 @@ angular.module('oreflow')
             animate();
         }
 
-        function degToRad(degrees) {
-            return degrees * Math.PI / 180;
-        }
+
 
         var webGLStart = function(canvas) {
-            //var modelObj = $.get('models/testhouse.obj');
-            //var modelObj2 = $.get('models/testcubes.obj');
-            //var island = $.get('models/island.obj');
 
             var modelReferences = [
                 {name: 'testhouse', url: 'models/testhouse.obj'},
                 {name: 'island', url: 'models/island.obj'},
-                {name: 'express', url: 'models/express.obj'}
+                {name: 'express', url: 'models/express.obj'},
+                {name: 'boom', url: 'models/boom.obj'},
+                {name: 'plain_sail', url: 'models/plain_sail.obj'}
             ];
+
+            models = modelService.getModels();
+
             var loadingModels = [];
             for(var i = 0; i < modelReferences.length; i++){
                 loadingModels.push($.get(modelReferences[i].url));
@@ -290,15 +301,21 @@ angular.module('oreflow')
                     models[modelReferences[i].name].translation = {x: 0, y: 0, z: -25};
                 }
 
-                scene.rotation = {x: 0, y: 0, z: 0};
-                scene.translation = {x: 0, y: 0, z: -10};
+                scene.translation = {x: 0, y: 0, z: -5};
                 scene.lightingDirection = [1.0, 1.0,-1.0];
 
-                models['testhouse'].translation.y = -7;
-                models['island'].translation.y = -8;
-                models['island'].rotation.x = 180;
-                models['express'].translation.y = -10;
-                models['express'].translation.z +=7;
+                models['testhouse'].translation.y += -7;
+
+                models['island'].translation.y += -8;
+                models['island'].rotation.y += 180;
+
+                models['express'].translation.y += -5;
+                models['express'].translation.x += 7;
+                models['express'].rotation.y += 0;
+
+
+                // default boom placement
+
 
                 var defer = $.when.apply($, modelAwaits);
 
