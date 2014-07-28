@@ -7,8 +7,8 @@ angular.module('oreflow')
         $scope.windowSize = {innerHeight: $window.innerHeight, innerWidth: $window.innerWidth};
         $scope.Math = Math;
         var canvasElement = document.getElementById('webgl-canvas');
-        canvasElement.height = Math.min($window.innerWidth, $window.innerHeight);
-        canvasElement.width = Math.min($window.innerWidth, $window.innerHeight);
+        canvasElement.height = $window.innerHeight;//Math.min($window.innerWidth, $window.innerHeight);
+        canvasElement.width = $window.innerWidth - 10;//Math.min($window.innerWidth, $window.innerHeight);
         webGLService.webGLStart(canvasElement);
 
         var windowSizeChange = function () {
@@ -16,13 +16,15 @@ angular.module('oreflow')
         };
 
         angular.element($window).bind('resize', function() {
+            console.log($window);
             $scope.windowSize.innerHeight = $window.innerHeight;
             $scope.windowSize.innerWidth = $window.innerWidth;
 
 
-            webGLService.setDimensions(Math.min($window.innerWidth, $window.innerHeight),Math.min($window.innerWidth, $window.innerHeight));
-            canvasElement.height = Math.min($window.innerWidth, $window.innerHeight);
-            canvasElement.width = Math.min($window.innerWidth, $window.innerHeight);
+            webGLService.setDimensions($window.innerHeight, $window.innerWidth);
+            //webGLService.setDimensions(Math.min($window.innerWidth, $window.innerHeight),Math.min($window.innerWidth, $window.innerHeight));
+            canvasElement.height = $window.innerHeight; //Math.min($window.innerWidth, $window.innerHeight);
+            canvasElement.width = $window.innerWidth - 10; //Math.min($window.innerWidth, $window.innerHeight);
             try {
                 $scope.$digest();
             } catch (exception) {

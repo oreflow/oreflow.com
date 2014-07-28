@@ -124,28 +124,66 @@ angular.module('oreflow')
         function initBuffers() {
             var objectKeys = Object.keys(models);
             for(var i = 0; i < objectKeys.length; i++) {
+
                 var model = models[objectKeys[i]];
 
-                var vertexPositions = []
+                var vertexPositions = [];//new Array(model.faces.length * 9);
                 var vertexIndices = [];
                 var vertexNormals = [];
                 var colorArray = [];
                 for(var j = 0; j < model.faces.length; j++) {
-                    vertexPositions = vertexPositions.concat(model.vertices[model.faces[j].face[0]]);
-                    vertexPositions = vertexPositions.concat(model.vertices[model.faces[j].face[1]]);
-                    vertexPositions = vertexPositions.concat(model.vertices[model.faces[j].face[2]]);
+
+                    vertexPositions[j * 9 + 0 ]= model.vertices[model.faces[j].face[0]][0];
+                    vertexPositions[j * 9 + 1 ]= model.vertices[model.faces[j].face[0]][1];
+                    vertexPositions[j * 9 + 2 ]= model.vertices[model.faces[j].face[0]][2];
+
+                    vertexPositions[j * 9 + 3 ]= model.vertices[model.faces[j].face[1]][0];
+                    vertexPositions[j * 9 + 4 ]= model.vertices[model.faces[j].face[1]][1];
+                    vertexPositions[j * 9 + 5 ]= model.vertices[model.faces[j].face[1]][2];
+
+                    vertexPositions[j * 9 + 6 ]= model.vertices[model.faces[j].face[2]][0];
+                    vertexPositions[j * 9 + 7 ]= model.vertices[model.faces[j].face[2]][1];
+                    vertexPositions[j * 9 + 8 ]= model.vertices[model.faces[j].face[2]][2];
+
 
                     var material = model.materials[model.verticeObjects[model.faces[j].face[0]].material];
-                    colorArray = colorArray.concat(material.diffuse.concat(material.opacity));
-                    colorArray = colorArray.concat(material.diffuse.concat(material.opacity));
-                    colorArray = colorArray.concat(material.diffuse.concat(material.opacity));
 
-                    vertexNormals = vertexNormals.concat(model.normals[model.faces[j].normal[0]]);
-                    vertexNormals = vertexNormals.concat(model.normals[model.faces[j].normal[1]]);
-                    vertexNormals = vertexNormals.concat(model.normals[model.faces[j].normal[2]]);
+                    colorArray[j * 12 + 0] = material.diffuse[0];
+                    colorArray[j * 12 + 1] = material.diffuse[1];
+                    colorArray[j * 12 + 2] = material.diffuse[2];
+                    colorArray[j * 12 + 3] = material.opacity;
 
-                    vertexIndices = vertexIndices.concat(model.faces[j].face);
+                    colorArray[j * 12 + 4] = material.diffuse[0];
+                    colorArray[j * 12 + 5] = material.diffuse[1];
+                    colorArray[j * 12 + 6] = material.diffuse[2];
+                    colorArray[j * 12 + 7] = material.opacity;
+
+                    colorArray[j * 12 + 8] = material.diffuse[0];
+                    colorArray[j * 12 + 9] = material.diffuse[1];
+                    colorArray[j * 12 + 10] = material.diffuse[2];
+                    colorArray[j * 12 + 11] = material.opacity;
+
+                    vertexNormals[j * 9 + 0] = model.normals[model.faces[j].normal[0]][0];
+                    vertexNormals[j * 9 + 1] = model.normals[model.faces[j].normal[0]][1];
+                    vertexNormals[j * 9 + 2] = model.normals[model.faces[j].normal[0]][2];
+
+                    vertexNormals[j * 9 + 3] = model.normals[model.faces[j].normal[1]][0];
+                    vertexNormals[j * 9 + 4] = model.normals[model.faces[j].normal[1]][1];
+                    vertexNormals[j * 9 + 5] = model.normals[model.faces[j].normal[1]][2];
+
+                    vertexNormals[j * 9 + 6] = model.normals[model.faces[j].normal[2]][0];
+                    vertexNormals[j * 9 + 7] = model.normals[model.faces[j].normal[2]][1];
+                    vertexNormals[j * 9 + 8] = model.normals[model.faces[j].normal[2]][2];
+
+
+
+                    vertexIndices[j * 3 + 0] = model.faces[j].face[0];
+                    vertexIndices[j * 3 + 1] = model.faces[j].face[1];
+                    vertexIndices[j * 3 + 2] = model.faces[j].face[2];
+
+
                 }
+
 
 
 
@@ -206,6 +244,9 @@ angular.module('oreflow')
             var objectKeys = Object.keys(models);
             for(var i = 0; i < objectKeys.length; i++) {
                 var model = models[objectKeys[i]];
+                if(model.draw === false) {
+                    continue;
+                }
                 mvPushMatrix();
                 mat4.translate(mvMatrix, [model.translation.x, model.translation.y, model.translation.z]);
 
@@ -213,6 +254,11 @@ angular.module('oreflow')
                 mat4.rotate(mvMatrix, commonService.angles.degToRad(model.rotation.x), [1, 0, 0]);
                 mat4.rotate(mvMatrix, commonService.angles.degToRad(model.rotation.z), [0, 0, 1]);
                 mat4.rotate(mvMatrix, commonService.angles.degToRad(model.rotation.y), [0, 1, 0]);
+
+
+                mvMatrix[0] = mvMatrix[0] * model.scale.x;
+                mvMatrix[5] = mvMatrix[5] * model.scale.y;
+                mvMatrix[10] = mvMatrix[10] * model.scale.z;
 
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexPositionBuffer);
@@ -224,7 +270,7 @@ angular.module('oreflow')
                 gl.bindBuffer(gl.ARRAY_BUFFER, model.colorBuffer);
                 gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, model.colorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-                gl.uniform3f(shaderProgram.ambientColorUniform,0.2, 0.2, 0.2);
+                gl.uniform3f(shaderProgram.ambientColorUniform,scene.ambient.r,scene.ambient.g, scene.ambient.b);
 
                 var adjustedLD = vec3.create();
                 vec3.normalize(scene.lightingDirection, adjustedLD);
@@ -260,8 +306,8 @@ angular.module('oreflow')
                 var elapsed = timeNow - lastTime;
                 // rotation
                 //scene.rotation.x += (10 * elapsed) / 1000.0
-                models['express'].rotation.y += (45 * elapsed) / 1000.0;
-                models['express'].rotation.y = models['express'].rotation.y % 360;
+                models['water'].rotation.y += (1 * elapsed) / 1000.0;
+                models['water'].rotation.y = models['water'].rotation.y % 360;
 
             }
             lastTime = timeNow;
@@ -278,11 +324,15 @@ angular.module('oreflow')
         var webGLStart = function(canvas) {
 
             var modelReferences = [
-                {name: 'testhouse', url: 'models/testhouse.obj'},
+                {name: 'house', url: 'models/house.obj'},
                 {name: 'island', url: 'models/island.obj'},
                 {name: 'express', url: 'models/express.obj'},
                 {name: 'boom', url: 'models/boom.obj'},
-                {name: 'plain_sail', url: 'models/plain_sail.obj'}
+                {name: 'plain_sail', url: 'models/plain_sail.obj'},
+                {name: 'curved_starboard_sail', url: 'models/curved_starboard_sail.obj'},
+                {name: 'curved_port_sail', url: 'models/curved_port_sail.obj'},
+                {name: 'water', url: 'models/water.obj'},
+                {name: 'cloud', url: 'models/cloud.obj'}
             ];
 
             models = modelService.getModels();
@@ -298,33 +348,40 @@ angular.module('oreflow')
                 for(var i = 0; i < modelReferences.length; i++) {
                     models[modelReferences[i].name] = modelService.loadModel(loadingModels[i].responseText, modelReferences[i].name, modelAwaits);
                     models[modelReferences[i].name].rotation = {x: 0, y: 0, z: 0};
-                    models[modelReferences[i].name].translation = {x: 0, y: 0, z: -25};
+                    models[modelReferences[i].name].translation = {x: 0, y: -3, z: -40};
+                    models[modelReferences[i].name].scale = {x: 1, y: 1, z: 1};
                 }
 
-                scene.translation = {x: 0, y: 0, z: -5};
-                scene.lightingDirection = [1.0, 1.0,-1.0];
+                scene.translation = {x: 0, y: 0, z: -15};
+                scene.lightingDirection = [1.0, -1.0, 1.0];
+                scene.ambient = {r: 0.4, g: 0.4, b: 0.4};
 
-                models['testhouse'].translation.y += -7;
+                models['house'].translation.y += -7;
 
                 models['island'].translation.y += -8;
                 models['island'].rotation.y += 180;
 
-                models['express'].translation.y += -5;
-                models['express'].translation.x += 7;
-                models['express'].rotation.y += 0;
+                models['express'].translation.y += -6;
+                models['express'].translation.x += 10;
+                models['express'].rotation.y += 180;
 
-                models['plain_sail'].translation.y += -5;
-                models['plain_sail'].translation.x += 7;
-                models['plain_sail'].rotation.y += 0;
 
-                boomService.setBoomAngle(0);
+                models['water'].translation.y += -8;
+                models['water'].translation.x += 2;
+
+                models['cloud'].rotation.y += 90;
+                models['cloud'].translation.y += 3;
+
+                models['plain_sail'].draw = false;
+
+                boomService.setBoomAngle(20);
 
 
                 var defer = $.when.apply($, modelAwaits);
 
                 defer.done(function () {
 
-                    console.log(models);
+
                     initGL(canvas);
                     initShaders();
                     initBuffers();

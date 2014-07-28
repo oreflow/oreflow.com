@@ -5,7 +5,7 @@ angular.module('oreflow')
     .service('boomService', [ 'commonService', 'modelService', function ( commonService, modelService) {
         var boatModel;
         var boomModel;
-        var sailModel;
+        var sailModel = {};
         var boomLength = 4;
         var boomAngle = 0;
         var boomModelAngle = 2; // bommen lutar bakåt 2 grader
@@ -17,14 +17,40 @@ angular.module('oreflow')
             if(!boomModel) {
                 boomModel = modelService.getModel('boom');
             }
-            if(!sailModel) {
-                sailModel = modelService.getModel('plain_sail');
+            if(!sailModel.port) {
+                sailModel.port = modelService.getModel('curved_port_sail');
+            }
+            if(!sailModel.starboard) {
+                sailModel.starboard = modelService.getModel('curved_starboard_sail');
+            }
+            if(!sailModel.plain) {
+                sailModel.plain = modelService.getModel('plain_sail');
             }
             if(!boatModel || !boomModel) {
                 console.log('returning since model was missing')
                 return;
             }
 
+
+
+            if(sailModel.port && sailModel.starboard && sailModel.plain) {
+                sailModel.port.draw = false;
+                sailModel.starboard.draw = false;
+                sailModel.plain.draw = false;
+
+                switch(true) {
+                    case (boomAngle < 0):
+                        sailModel.port.draw = true;
+                        break;
+                    case (boomAngle == 0):
+                        sailModel.plain.draw = true;
+                        break;
+                    case (boomAngle > 0):
+                        sailModel.starboard.draw = true;
+                        break;
+                }
+
+            }
 
 
             boomModel.rotation.x = boatModel.rotation.x ;
@@ -44,13 +70,29 @@ angular.module('oreflow')
             boomModel.translation.z += -dx * Math.sin(commonService.angles.degToRad(boatModel.rotation.y)) + dz * Math.cos(commonService.angles.degToRad(boatModel.rotation.y));
 
 
-            if(sailModel) {
-                sailModel.rotation.x = boomModel.rotation.x ;
-                sailModel.rotation.z = boomModel.rotation.z ;
-                sailModel.rotation.y = boomModel.rotation.y;
-                sailModel.translation.y = boomModel.translation.y;
-                sailModel.translation.y = boomModel.translation.y;
-                sailModel.translation.y = boomModel.translation.y;
+            if(sailModel.port) {
+                sailModel.port.rotation.x = boomModel.rotation.x ;
+                sailModel.port.rotation.z = boomModel.rotation.z ;
+                sailModel.port.rotation.y = boomModel.rotation.y;
+                sailModel.port.translation.x = boatModel.translation.x;
+                sailModel.port.translation.z = boatModel.translation.z;
+                sailModel.port.translation.y = boatModel.translation.y;
+            }
+            if(sailModel.starboard) {
+                sailModel.starboard.rotation.x = boomModel.rotation.x ;
+                sailModel.starboard.rotation.z = boomModel.rotation.z ;
+                sailModel.starboard.rotation.y = boomModel.rotation.y;
+                sailModel.starboard.translation.x = boatModel.translation.x;
+                sailModel.starboard.translation.z = boatModel.translation.z;
+                sailModel.starboard.translation.y = boatModel.translation.y;
+            }
+            if(sailModel.plain) {
+                sailModel.plain.rotation.x = boomModel.rotation.x ;
+                sailModel.plain.rotation.z = boomModel.rotation.z ;
+                sailModel.plain.rotation.y = boomModel.rotation.y;
+                sailModel.plain.translation.x = boatModel.translation.x;
+                sailModel.plain.translation.z = boatModel.translation.z;
+                sailModel.plain.translation.y = boatModel.translation.y;
             }
         };
 
