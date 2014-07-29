@@ -329,7 +329,6 @@ angular.module('oreflow')
                 {name: 'water', url: 'models/water.obj', type: 'model'},
                 {name: 'boatPath', url: 'paths/boatPath.obj', type: 'path'},
                 {name: 'airtext_clouds_test', url: 'models/airtext_clouds_test.obj', type: 'model'},
-                {name: 'airtext_clouds_dot', url: 'models/airtext_clouds_dot.obj', type: 'model'},
                 //{name: 'Cube', url: 'models/Cube.obj', type: 'model'},
                 {name: 'airPath', url: 'paths/airPath2.obj', type: 'path'}
             ];
