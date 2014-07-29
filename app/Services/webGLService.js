@@ -2,7 +2,7 @@
  * Created by Tim on 15/07/2014.
  */
 angular.module('oreflow')
-    .service('webGLService', ['modelService', 'commonService', 'boomService', function (modelService, commonService, boomService) {
+    .service('webGLService', ['objService', 'commonService', 'boatService', 'pathService', function (objService, commonService, boatService, pathService) {
 
 
         var gl;
@@ -175,17 +175,10 @@ angular.module('oreflow')
                     vertexNormals[j * 9 + 7] = model.normals[model.faces[j].normal[2]][1];
                     vertexNormals[j * 9 + 8] = model.normals[model.faces[j].normal[2]][2];
 
-
-
                     vertexIndices[j * 3 + 0] = model.faces[j].face[0];
                     vertexIndices[j * 3 + 1] = model.faces[j].face[1];
                     vertexIndices[j * 3 + 2] = model.faces[j].face[2];
-
-
                 }
-
-
-
 
                 model.vertexPositionBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, model.vertexPositionBuffer);
@@ -225,8 +218,8 @@ angular.module('oreflow')
 
         function drawScene() {
             // functions that need to be called each draw cycle
-
-            boomService.updatePosition();
+            pathService.updatePaths();
+            boatService.updatePosition();
 
 
 
@@ -249,6 +242,7 @@ angular.module('oreflow')
                 }
                 mvPushMatrix();
                 mat4.translate(mvMatrix, [model.translation.x, model.translation.y, model.translation.z]);
+
 
 
                 mat4.rotate(mvMatrix, commonService.angles.degToRad(model.rotation.x), [1, 0, 0]);
@@ -309,6 +303,7 @@ angular.module('oreflow')
                 models['water'].rotation.y += (1 * elapsed) / 1000.0;
                 models['water'].rotation.y = models['water'].rotation.y % 360;
 
+
             }
             lastTime = timeNow;
         }
@@ -324,18 +319,21 @@ angular.module('oreflow')
         var webGLStart = function(canvas) {
 
             var modelReferences = [
-                {name: 'house', url: 'models/house.obj'},
-                {name: 'island', url: 'models/island.obj'},
-                {name: 'express', url: 'models/express.obj'},
-                {name: 'boom', url: 'models/boom.obj'},
-                {name: 'plain_sail', url: 'models/plain_sail.obj'},
-                {name: 'curved_starboard_sail', url: 'models/curved_starboard_sail.obj'},
-                {name: 'curved_port_sail', url: 'models/curved_port_sail.obj'},
-                {name: 'water', url: 'models/water.obj'},
-                {name: 'cloud', url: 'models/cloud.obj'}
+                {name: 'house', url: 'models/house.obj', type: 'model'},
+                {name: 'island', url: 'models/island.obj', type: 'model'},
+                {name: 'express', url: 'models/express.obj', type: 'model'},
+                {name: 'boom', url: 'models/boom.obj', type: 'model'},
+                {name: 'plain_sail', url: 'models/plain_sail.obj', type: 'model'},
+                {name: 'curved_starboard_sail', url: 'models/curved_starboard_sail.obj', type: 'model'},
+                {name: 'curved_port_sail', url: 'models/curved_port_sail.obj', type: 'model'},
+                {name: 'water', url: 'models/water.obj', type: 'model'},
+                {name: 'boatPath', url: 'paths/boatPath.obj', type: 'path'},
+                {name: 'airtext_clouds_test', url: 'models/airtext/airtext_clouds_test.obj', type: 'model'},
+                //{name: 'Cube', url: 'models/Cube.obj', type: 'model'},
+                {name: 'airPath', url: 'paths/airPath2.obj', type: 'path'}
             ];
 
-            models = modelService.getModels();
+            models = objService.getModels();
 
             var loadingModels = [];
             for(var i = 0; i < modelReferences.length; i++){
@@ -346,13 +344,10 @@ angular.module('oreflow')
 
             modelDefer.done(function () {
                 for(var i = 0; i < modelReferences.length; i++) {
-                    models[modelReferences[i].name] = modelService.loadModel(loadingModels[i].responseText, modelReferences[i].name, modelAwaits);
-                    models[modelReferences[i].name].rotation = {x: 0, y: 0, z: 0};
-                    models[modelReferences[i].name].translation = {x: 0, y: -3, z: -40};
-                    models[modelReferences[i].name].scale = {x: 1, y: 1, z: 1};
+                    objService.loadObj(loadingModels[i].responseText, modelReferences[i], modelAwaits);
                 }
 
-                scene.translation = {x: 0, y: 0, z: -15};
+                scene.translation = {x: 0, y: -3, z: -55};
                 scene.lightingDirection = [1.0, -1.0, 1.0];
                 scene.ambient = {r: 0.4, g: 0.4, b: 0.4};
 
@@ -361,20 +356,27 @@ angular.module('oreflow')
                 models['island'].translation.y += -8;
                 models['island'].rotation.y += 180;
 
-                models['express'].translation.y += -6;
+                models['express'].translation.y += -5.8;
                 models['express'].translation.x += 10;
-                models['express'].rotation.y += 180;
+                models['express'].translation.z += 10;
+
 
 
                 models['water'].translation.y += -8;
                 models['water'].translation.x += 2;
 
-                models['cloud'].rotation.y += 90;
-                models['cloud'].translation.y += 3;
+                models['airtext_clouds_test'].translation.y = 3;
+                models['airtext_clouds_test'].scale.x = 2;
+                models['airtext_clouds_test'].scale.y = 2;
+                models['airtext_clouds_test'].scale.z = 2;
+
 
                 models['plain_sail'].draw = false;
+                models['boom'].draw = false;
 
-                boomService.setBoomAngle(20);
+
+
+
 
 
                 var defer = $.when.apply($, modelAwaits);

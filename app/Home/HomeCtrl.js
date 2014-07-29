@@ -16,7 +16,6 @@ angular.module('oreflow')
         };
 
         angular.element($window).bind('resize', function() {
-            console.log($window);
             $scope.windowSize.innerHeight = $window.innerHeight;
             $scope.windowSize.innerWidth = $window.innerWidth;
 
