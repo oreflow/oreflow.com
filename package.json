@@ -1,0 +1,11 @@
+{
+  "name": "Oreflow.com",
+  "description": "WebGL test project",
+  "author": {
+    "name": "Tim Malmström",
+    "url": "http://oreflow.com/"
+  },
+  "devDependencies": {
+    "grunt-dom-munger": "^3.4.0"
+  }
+}
