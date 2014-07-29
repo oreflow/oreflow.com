@@ -328,7 +328,8 @@ angular.module('oreflow')
                 {name: 'curved_port_sail', url: 'models/curved_port_sail.obj', type: 'model'},
                 {name: 'water', url: 'models/water.obj', type: 'model'},
                 {name: 'boatPath', url: 'paths/boatPath.obj', type: 'path'},
-                {name: 'airtext_clouds_test', url: 'models/airtext/airtext_clouds_test.obj', type: 'model'},
+                {name: 'airtext_clouds_test', url: 'models/airtext_clouds_test.obj', type: 'model'},
+                {name: 'airtext_clouds_dot', url: 'models/airtext_clouds_dot.obj', type: 'model'},
                 //{name: 'Cube', url: 'models/Cube.obj', type: 'model'},
                 {name: 'airPath', url: 'paths/airPath2.obj', type: 'path'}
             ];
@@ -365,10 +366,12 @@ angular.module('oreflow')
                 models['water'].translation.y += -8;
                 models['water'].translation.x += 2;
 
-                models['airtext_clouds_test'].translation.y = 3;
+                models['airtext_clouds_test'].translation.y = 10;
+                /*
                 models['airtext_clouds_test'].scale.x = 2;
                 models['airtext_clouds_test'].scale.y = 2;
                 models['airtext_clouds_test'].scale.z = 2;
+*/
 
 
                 models['plain_sail'].draw = false;
