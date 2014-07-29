@@ -1083,11 +1083,11 @@ angular.module('oreflow')
                 models['water'].translation.x += 2;
 
                 models['airtext_clouds_test'].translation.y = 10;
-                /*
-                models['airtext_clouds_test'].scale.x = 2;
-                models['airtext_clouds_test'].scale.y = 2;
-                models['airtext_clouds_test'].scale.z = 2;
-*/
+
+                models['airtext_clouds_test'].scale.x = 0.6;
+                models['airtext_clouds_test'].scale.y = 0.6;
+                models['airtext_clouds_test'].scale.z = 0.6;
+
 
 
                 models['plain_sail'].draw = false;
