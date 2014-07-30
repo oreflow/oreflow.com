@@ -23,6 +23,10 @@ angular.module('oreflow')
             var timeNow = new Date().getTime();
             if (lastUpdate != 0) {
                 var elapsed = timeNow - lastUpdate;
+                if(elapsed > 2 * 1000) {
+                    lastUpdate = new Date().getTime();
+                    return;
+                }
                 if (!models || !paths) {
                     models = objService.getModels();
                     paths = objService.getPaths();

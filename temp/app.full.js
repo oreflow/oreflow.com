@@ -83,6 +83,10 @@ angular.module('oreflow')
         var updatePosition = function () {
             var timeNow = new Date().getTime();
             var elapsed = timeNow - lastUpdate;
+            if(elapsed > 2 * 1000) {
+                lastUpdate = new Date().getTime();
+                return;
+            }
 
             if (lastUpdate != 0) {
                 if (!boatModel) {
@@ -544,6 +548,10 @@ angular.module('oreflow')
             var timeNow = new Date().getTime();
             if (lastUpdate != 0) {
                 var elapsed = timeNow - lastUpdate;
+                if(elapsed > 2 * 1000) {
+                    lastUpdate = new Date().getTime();
+                    return;
+                }
                 if (!models || !paths) {
                     models = objService.getModels();
                     paths = objService.getPaths();

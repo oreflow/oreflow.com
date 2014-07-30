@@ -22,6 +22,10 @@ angular.module('oreflow')
         var updatePosition = function () {
             var timeNow = new Date().getTime();
             var elapsed = timeNow - lastUpdate;
+            if(elapsed > 2 * 1000) {
+                lastUpdate = new Date().getTime();
+                return;
+            }
 
             if (lastUpdate != 0) {
                 if (!boatModel) {
